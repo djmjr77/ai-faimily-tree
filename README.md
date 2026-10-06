@@ -14,6 +14,7 @@ Each entry shows:
 - The year it was first published
 - A one-line description in plain English
 - A status label for how widely it is used today
+- A "Continued Learning" link to an article, paper, or project page
 
 The tree has two trunks:
 
@@ -46,7 +47,7 @@ All the content lives in the `DATA` array inside the `<script>` tag near the bot
 F("Family name", "status", "Description.", [ ...designs ])
 
 // A single design (a leaf)
-L("Design name", "year", "status", "Description.")
+L("Design name", "year", "status", "Description.", "https://link-for-continued-learning")
 ```
 
 The status must be one of these keys:
@@ -59,13 +60,14 @@ The status must be one of these keys:
 | `exp`  | Experimental      |
 | `hist` | Mostly historical |
 
-Leave the year as an empty string (`""`) if a design has no single publication date. The entry counts at the top of the page update automatically.
+Leave the year as an empty string (`""`) if a design has no single publication date. The link is optional: leave it off and the "Continued Learning" line is not shown for that entry. The entry counts at the top of the page update automatically.
 
 ## Accuracy notes
 
 - The tree is not complete. Thousands of named variants exist, and this covers the main lineages and their best-known members.
 - Years are first-publication dates and are approximate. Many papers appear as a preprint one year and are formally published the next.
 - Status labels are a judgment call about current usage and will go out of date fastest.
+- Continued Learning links point to Wikipedia where a good article exists, and otherwise to the original paper or the project's own page.
 - Entries were last reviewed in October 2026.
 
 Corrections and additions are welcome.
