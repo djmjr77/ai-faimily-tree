@@ -1,4 +1,4 @@
-[Clickable Text](https://djmjr77.github.io/ai-faimily-tree/ "View AI family tree")
+[-- View AI family tree --](https://djmjr77.github.io/ai-faimily-tree/ "View AI family tree")
 
 # The family tree of AI base brains
 
