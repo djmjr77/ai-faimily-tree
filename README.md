@@ -1,4 +1,4 @@
-[Clickable Text]([https://www.example.com](https://djmjr77.github.io/ai-faimily-tree/) "View AI family tree")
+[Clickable Text](https://djmjr77.github.io/ai-faimily-tree/ "View AI family tree")
 
 # The family tree of AI base brains
 
