@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The family tree of AI base brains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F3F5F7; --surface: #FFFFFF; --ink: #16202E; --muted: #556170; --line: #C3CCD6; --focus: #1D5FA8;
+  --dom-fg: #17693B; --dom-bg: #DDF1E4;
+  --wide-fg: #1A558F; --wide-bg: #DDEBFA;
+  --spec-fg: #7A4F00; --spec-bg: #FBEBCB;
+  --exp-fg: #5E36A6; --exp-bg: #EAE2FA;
+  --hist-fg: #525C68; --hist-bg: #E2E7EC;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10161F; --surface: #18212D; --ink: #E6ECF3; --muted: #9AA7B6; --line: #2E3A4A; --focus: #8FC1F5;
+    --dom-fg: #7FD9A3; --dom-bg: #173A26;
+    --wide-fg: #8FC1F5; --wide-bg: #16314F;
+    --spec-fg: #F0C36B; --spec-bg: #40300A;
+    --exp-fg: #C3A6F7; --exp-bg: #2E2150;
+    --hist-fg: #A9B4C0; --hist-bg: #252E39;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10161F; --surface: #18212D; --ink: #E6ECF3; --muted: #9AA7B6; --line: #2E3A4A; --focus: #8FC1F5;
+  --dom-fg: #7FD9A3; --dom-bg: #173A26;
+  --wide-fg: #8FC1F5; --wide-bg: #16314F;
+  --spec-fg: #F0C36B; --spec-bg: #40300A;
+  --exp-fg: #C3A6F7; --exp-bg: #2E2150;
+  --hist-fg: #A9B4C0; --hist-bg: #252E39;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 17px; line-height: 1.5;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+h1, h2, .fam-name { font-family: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif; }
+h1 { font-size: clamp(2.3rem, 7vw, 3.8rem); line-height: 1.02; letter-spacing: -0.02em; font-weight: 700; margin: 0 0 1rem; max-width: 13ch; }
+.lede { max-width: 58ch; color: var(--muted); font-size: 1.15rem; margin: 0 0 .5rem; }
+.tally { color: var(--muted); margin: 0 0 1.5rem; font-variant-numeric: tabular-nums; }
+
+.tools {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2;
+  background: var(--paper); padding: .75rem 0; border-bottom: 2px solid var(--line);
+  display: grid; gap: .6rem;
+}
+.tools-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.tools label { font-weight: 600; }
+#q {
+  flex: 1 1 14rem; min-width: 0; font: inherit; color: var(--ink); background: var(--surface);
+  border: 2px solid var(--line); border-radius: 8px; padding: .45rem .7rem;
+}
+.btn {
+  font: inherit; font-weight: 600; color: var(--ink); background: var(--surface);
+  border: 2px solid var(--line); border-radius: 8px; padding: .4rem .8rem; cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.filter-label { color: var(--muted); }
+
+.chip {
+  display: inline-block; font-size: .8rem; font-weight: 600; line-height: 1.5; white-space: nowrap;
+  padding: 0 .55rem; border-radius: 999px; border: 2px solid transparent;
+}
+.s-dom { color: var(--dom-fg); background: var(--dom-bg); }
+.s-wide { color: var(--wide-fg); background: var(--wide-bg); }
+.s-spec { color: var(--spec-fg); background: var(--spec-bg); }
+.s-exp { color: var(--exp-fg); background: var(--exp-bg); }
+.s-hist { color: var(--hist-fg); background: var(--hist-bg); }
+button.chip { font-family: inherit; cursor: pointer; font-size: .88rem; padding: .1rem .7rem; }
+button.chip[aria-pressed="false"] { background: transparent; color: var(--muted); border-color: var(--line); text-decoration: line-through; }
+
+.trunk { margin-top: 2.5rem; }
+.trunk h2 { font-size: 1.9rem; line-height: 1.1; letter-spacing: -0.01em; font-weight: 700; margin: 0 0 .3rem; }
+.trunk > p { color: var(--muted); max-width: 62ch; margin: 0 0 .75rem; }
+
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding: 0; }
+ul.tree { margin-left: .4rem; padding-left: 1.3rem; border-left: 2px solid var(--line); }
+ul.tree ul { margin: .2rem 0 .2rem .55rem; padding-left: 1.3rem; border-left: 2px solid var(--line); }
+ul.tree li { position: relative; padding: .4rem 0; }
+ul.tree li::before {
+  content: ""; position: absolute; left: -1.3rem; top: 1.15rem; width: 1rem; border-top: 2px solid var(--line);
+}
+li.fam::before { top: 1.35rem; }
+
+.fam-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; width: 100%;
+  font: inherit; color: inherit; text-align: left; background: none; border: 0; padding: .15rem 0; cursor: pointer; border-radius: 6px;
+}
+.caret {
+  flex: none; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--ink); color: var(--paper);
+  display: grid; place-items: center; font-size: .7rem; line-height: 1;
+}
+.caret svg { width: .7rem; height: .7rem; }
+.fam-head[aria-expanded="true"] .caret svg { transform: rotate(90deg); }
+@media (prefers-reduced-motion: no-preference) { .caret svg { transition: transform .15s ease; } }
+.fam-name { font-size: 1.3rem; font-weight: 500; letter-spacing: -0.005em; }
+.count { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .95rem; }
+.desc { color: var(--muted); margin: .1rem 0 0; max-width: 66ch; }
+li.fam > .desc { margin-left: 1.8rem; }
+
+.leaf-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .5rem; }
+.leaf-name { font-weight: 600; }
+.year { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .95rem; }
+mark { background: var(--spec-bg); color: inherit; border-radius: 3px; padding: 0 .1em; }
+
+.empty { margin-top: 2rem; padding: 1rem 1.2rem; border: 2px dashed var(--line); border-radius: 10px; color: var(--muted); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 2px solid var(--line); color: var(--muted); max-width: 66ch; }
+[hidden] { display: none !important; }
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  ul.tree, ul.tree ul { padding-left: 1rem; }
+  ul.tree li::before { left: -1rem; width: .75rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>The family tree of AI base brains</h1>
+    <p class="lede">The main designs for an AI model's brain, grouped by lineage. Each branch is a different way of wiring a model, before any training happens.</p>
+    <p class="tally" id="tally"></p>
+  </header>
+
+  <div class="tools">
+    <div class="tools-row">
+      <label for="q">Find a design</label>
+      <input id="q" type="search" placeholder="Try LSTM, video, or 2017" autocomplete="off">
+      <button class="btn" id="expand" type="button">Open all branches</button>
+      <button class="btn" id="collapse" type="button">Close all branches</button>
+    </div>
+    <div class="tools-row" id="filters" role="group" aria-label="Show or hide by how widely each design is used today">
+      <span class="filter-label">Show</span>
+    </div>
+  </div>
+
+  <main id="out"></main>
+  <p class="empty" id="empty" hidden>Nothing matches. Clear the search box or turn a status back on to see the tree again.</p>
+
+  <footer>
+    <p>No list like this is complete: thousands of named variants exist, and this covers the main lineages and their best-known members. Years are when a design was first published and are approximate. Status labels describe how much each design is used today and are a judgment call. Entries were last reviewed in October 2026.</p>
+  </footer>
+</div>
+
+<script>
+var STATUS = {
+  dom:  "Dominant",
+  wide: "In wide use",
+  spec: "Specialist",
+  exp:  "Experimental",
+  hist: "Mostly historical"
+};
+
+function L(n, y, s, d) { return { n: n, y: y, s: s, d: d }; }
+function F(n, s, d, c) { return { n: n, s: s, d: d, c: c }; }
+
+var DATA = [
+  { n: "Neural networks",
+    d: "Layers of simple math units, loosely modeled on brain cells, that learn by adjusting the strength of the connections between them.",
+    c: [
+      F("Feed-forward networks", "wide", "Data flows one way, in the front and out the back. The simplest design and the ancestor of the rest.", [
+        L("Perceptron", "1958", "hist", "A single artificial neuron. The starting point of the field."),
+        L("Adaline", "1960", "hist", "An early single-neuron design whose error-correcting rule is a forerunner of how networks are trained today."),
+        L("Group method of data handling", "1965", "hist", "Arguably the first working deep networks, grown one layer at a time."),
+        L("Multilayer perceptron", "1986", "wide", "Stacked layers of neurons. Rarely used alone now, but a part inside nearly every other brain."),
+        L("Radial basis function network", "1988", "hist", "Neurons that respond to how close an input is to a stored example."),
+        L("Neural fields, such as NeRF", "2020", "spec", "A small network that memorizes one 3D scene so it can be viewed from any angle."),
+        L("MLP-Mixer", "2021", "exp", "An attempt to do vision with nothing but plain layers."),
+        L("Kolmogorov-Arnold network", "2024", "exp", "Puts learnable curves on the connections instead of single numbers. Explored for science problems.")
+      ]),
+      F("Convolutional networks", "wide", "Scan data through small sliding windows, spotting edges, then shapes, then objects. Built for images.", [
+        L("Neocognitron", "1980", "hist", "The ancestor that introduced the sliding-window idea."),
+        L("Time-delay neural network", "1987", "hist", "Slid a window across time to recognize speech sounds. An early cousin of the image designs."),
+        L("LeNet", "1989", "hist", "Read handwritten digits on bank checks. The first practical success."),
+        L("AlexNet", "2012", "hist", "Won a major image contest by a wide margin and set off the deep learning boom."),
+        L("R-CNN family", "2014", "wide", "Proposes regions of an image and labels each one. Mask R-CNN outlines objects pixel by pixel."),
+        L("VGG and Inception", "2014", "hist", "Deeper and more intricate window stacks that pushed accuracy further."),
+        L("ResNet", "2015", "wide", "Added shortcut connections so very deep networks could be trained. Still a workhorse."),
+        L("U-Net", "2015", "wide", "Shrinks an image down, then builds it back up. Used for medical scans and inside the first Stable Diffusion."),
+        L("YOLO family", "2015", "wide", "Finds and boxes objects in real time. Common in cameras, drones, and cars."),
+        L("DenseNet", "2016", "spec", "Connects every layer to every later layer so features get reused."),
+        L("WaveNet and temporal convolutions", "2016", "spec", "Sliding windows over time instead of space, for audio and other signals."),
+        L("MobileNet and EfficientNet", "2017", "wide", "Slimmed down to run on phones and small devices."),
+        L("3D convolutional networks", "", "spec", "Windows that slide through time as well as space. Used for video, including the compressors inside video generators."),
+        L("ConvNeXt", "2022", "spec", "A modernized design showing this family can still match transformers on images."),
+        L("Hyena", "2023", "exp", "Very long learned windows used in place of attention. Applied to reading DNA.")
+      ]),
+      F("Recurrent networks", "hist", "Read one piece at a time while carrying a running memory. Ran translation and voice assistants before transformers took over.", [
+        L("Simple recurrent network", "1990", "hist", "The basic loop design. Forgets quickly over long inputs."),
+        L("LSTM", "1997", "spec", "Added memory gates so the network could remember across long stretches. Still used in small devices."),
+        L("Bidirectional recurrent network", "1997", "hist", "Reads the input forward and backward at the same time."),
+        L("Echo state network", "2001", "hist", "A fixed random loop where only the output layer learns."),
+        L("GRU", "2014", "spec", "A lighter, simpler take on the LSTM."),
+        L("Sequence-to-sequence with attention", "2014", "hist", "One network reads, another writes, with a spotlight linking them. The direct ancestor of the transformer."),
+        L("Neural Turing machine", "2014", "hist", "A network with a scratchpad it can read and write, later extended as the differentiable neural computer. Influential research with little practical use."),
+        L("Liquid neural network", "2020", "exp", "Tiny networks whose behavior keeps adapting to their input. The research led to Liquid AI's current models, which are hybrids listed under composite designs."),
+        L("RWKV", "2023", "exp", "A recurrent design that trains like a transformer but runs with a small, fixed memory."),
+        L("xLSTM", "2024", "exp", "A modern rebuild of the LSTM from the lab of one of its inventors.")
+      ]),
+      F("Transformers", "dom", "Every piece of the input can look directly at every other piece, which is called attention. The brain behind nearly all headline AI today.", [
+        L("Encoder-decoder transformer", "2017", "wide", "The original design: one half reads, the other half writes. Used for translation, as in T5 and BART."),
+        L("Encoder-only transformer", "2018", "wide", "Reads but does not write. BERT and its descendants sit behind search and text sorting."),
+        L("Decoder-only transformer", "2018", "dom", "Writes one piece at a time. The design behind GPT, Claude, Gemini, and Llama."),
+        L("Speech transformers", "2018", "wide", "Attention applied to audio. Conformer and Whisper turn speech into text."),
+        L("Vision transformer", "2020", "wide", "Chops an image into patches and treats them like words."),
+        L("Structure-prediction transformers", "2020", "spec", "Attention adapted for biology. AlphaFold predicts the shapes of proteins."),
+        L("Long-context and linear-attention variants", "2020", "spec", "Longformer, Reformer, and newer linear-attention designs that trim attention so long inputs cost less."),
+        L("Dual-encoder models, such as CLIP", "2021", "wide", "Two transformers side by side, one for text and one for images, trained to agree."),
+        L("Perceiver", "2021", "exp", "Built to take any kind of input, whatever its size or shape."),
+        L("Decision transformer", "2021", "spec", "Treats actions like words to predict. A basis for modern robot-control models."),
+        L("Diffusion transformer", "2022", "dom", "A transformer used as the noise remover. The brain inside Sora, Seedance, and FLUX."),
+        L("Tabular transformers, such as TabPFN", "2022", "spec", "Pre-trained on millions of made-up tables. Beats tree methods on small spreadsheet-style datasets."),
+        L("Vision-language-action models", "2023", "spec", "Take in camera images and instructions and output robot movements."),
+        L("Time-series transformers", "2023", "spec", "Forecasting models such as TimesFM and Chronos, pre-trained on many kinds of historical data."),
+        L("Titans", "2025", "exp", "A transformer with an added long-term memory that keeps learning while in use, storing what surprises it."),
+        L("Mixture-of-experts transformer", "", "wide", "Routes each piece of input to a few specialist sub-networks, so a very large model stays affordable to run."),
+        L("Multimodal transformer", "", "dom", "One model that takes text, images, audio, and video together.")
+      ]),
+      F("State space models", "spec", "Carry a compact running summary instead of comparing every piece with every other. Cheaper on very long inputs, and now mixed into some production language models.", [
+        L("S4", "2021", "exp", "The research design that showed the idea could work over long ranges."),
+        L("Mamba", "2023", "spec", "The best-known version. Its layers are now blended with attention in models such as NVIDIA's Nemotron 3."),
+        L("Mamba-2", "2024", "spec", "Simplified the design so it trains several times faster, which widened its adoption."),
+        L("Vision Mamba", "2024", "exp", "The same idea applied to images."),
+        L("Mamba-3", "2026", "exp", "Redesigned around running cost, with a richer memory update that keeps track of state better.")
+      ]),
+      F("Graph and geometric networks", "spec", "Built for data shaped like a web of connections or points in space: molecules, road maps, social networks, the atmosphere.", [
+        L("Graph neural network", "2005", "hist", "The original design for passing information along the links of a graph."),
+        L("Graph convolutional network", "2016", "spec", "Each point updates itself from its neighbors."),
+        L("GraphSAGE", "2017", "spec", "Samples neighbors so it can scale to huge networks, such as recommendation feeds."),
+        L("Graph attention network", "2017", "spec", "Lets each point weigh which neighbors matter most."),
+        L("Message-passing network", "2017", "spec", "Neighbors exchange messages over several rounds. Standard for chemistry."),
+        L("Point-cloud networks, such as PointNet", "2017", "spec", "Work on loose 3D points from laser scanners."),
+        L("Deep Sets", "2017", "spec", "Handles a collection of items where the order should not matter."),
+        L("Learned simulators, such as GraphCast", "2022", "spec", "Predict how weather or physical systems evolve by passing messages over a mesh."),
+        L("Equivariant networks", "", "spec", "Know that a molecule is the same molecule when rotated. Used in drug and materials discovery."),
+        L("Graph transformer", "", "spec", "Attention applied to web-shaped data.")
+      ]),
+      F("Early memory and energy-based networks", "hist", "Settle into a stable state, like a ball rolling into a valley. Little used now, but the ideas fed into modern generators.", [
+        L("Hopfield network", "1982", "hist", "Stores patterns and recalls a whole one from a fragment."),
+        L("Self-organizing map", "1982", "hist", "Arranges data on a flat map where similar things land close together."),
+        L("Boltzmann machine", "1985", "hist", "Learns by random jiggling toward likely states."),
+        L("Restricted Boltzmann machine", "1986", "hist", "A simplified version that was practical to train."),
+        L("Adaptive resonance theory", "1987", "hist", "Learns new categories without overwriting old ones."),
+        L("Helmholtz machine", "1995", "hist", "A two-way network that learns to both recognize and generate. A forerunner of the variational autoencoder."),
+        L("Deep belief network", "2006", "hist", "Stacked versions that revived interest in deep learning."),
+        L("Modern Hopfield network", "2020", "exp", "A rebuilt version with far greater capacity, shown to be closely related to attention.")
+      ]),
+      F("Offshoots and experiments", "exp", "Designs that take a different starting assumption from the main families.", [
+        L("Spiking neural network", "", "exp", "Neurons that fire in pulses like real ones. Runs on special low-power chips."),
+        L("Neuroevolution, such as NEAT", "2002", "exp", "Evolves the network's wiring instead of designing it by hand."),
+        L("Normalizing flow", "2015", "spec", "A reversible network that can be run exactly forward or backward. Used in audio and physics."),
+        L("Hypernetwork", "2016", "exp", "A network that outputs the settings for another network."),
+        L("Capsule network", "2017", "hist", "Tried to teach networks how parts form wholes. It did not catch on."),
+        L("Neural ODE", "2018", "exp", "Treats depth as continuous instead of a fixed stack of layers."),
+        L("Deep equilibrium model", "2019", "exp", "Applies one layer over and over until its output stops changing."),
+        L("Neural operators, such as the Fourier neural operator", "2020", "spec", "Learn to solve physics equations directly. Used in fast weather and fluid models."),
+        L("Neural cellular automata", "2020", "exp", "Grids of identical tiny networks that grow patterns by talking to their neighbors."),
+        L("Recursive reasoning models, such as HRM and TRM", "2025", "exp", "Tiny networks that loop over their own draft answer many times. Strong on puzzles like Sudoku, but they do not handle language."),
+        L("Continuous thought machine", "2025", "exp", "Gives each neuron its own sense of timing, so the network thinks in steps over time."),
+        L("Dragon Hatchling (BDH)", "2025", "exp", "A brain-inspired design where attention arises from local interactions between neurons.")
+      ]),
+      F("Composite designs", "wide", "Not new brains but ways of wiring the brains above together. Each can be built from any family.", [
+        L("Autoencoder", "1980s", "wide", "Squeezes data through a narrow middle and rebuilds it."),
+        L("Siamese and two-tower networks", "1993", "wide", "Twin networks that learn whether two things match. Used in face unlock and recommendations."),
+        L("Variational autoencoder", "2013", "wide", "A smoother autoencoder. The compressor inside most image and video generators."),
+        L("Generative adversarial network", "2014", "spec", "A forger and a detective train against each other. Led image generation before diffusion, with StyleGAN the best known."),
+        L("Neural network plus search, such as AlphaGo", "2016", "spec", "A network suggests promising moves and a search checks them. Beat the world's best Go players."),
+        L("VQ-VAE", "2017", "wide", "Compresses data into a fixed dictionary of codes, so images or audio can be handled like words."),
+        L("World models and JEPA", "2018", "exp", "Networks that learn to predict how a scene will unfold, aimed at planning and robotics."),
+        L("Retrieval-augmented systems", "2020", "wide", "A language model paired with a search index, so it can look things up before answering."),
+        L("Masked autoencoder", "2021", "wide", "Hides most of an image and learns by rebuilding it. A common way to pre-train vision models."),
+        L("Hybrids", "", "wide", "Mixes of the families above: attention plus state space layers in NVIDIA's Nemotron 3, or short sliding windows plus attention in Liquid AI's LFM2.")
+      ])
+    ]
+  },
+  { n: "Not neural networks",
+    d: "Other kinds of AI that do not use artificial neurons. Often the best tool for small or table-shaped data.",
+    c: [
+      F("Decision trees and forests", "wide", "Learned flowcharts. Long the usual winner on spreadsheet-style data such as fraud detection and credit scoring, though tabular transformers now challenge them on small datasets.", [
+        L("Decision tree", "1984", "wide", "A flowchart of yes-or-no questions learned from data."),
+        L("AdaBoost", "1995", "spec", "Combines many weak rules into a strong one, with each round focusing on earlier mistakes."),
+        L("Random forest", "2001", "wide", "Hundreds of trees voting together."),
+        L("Gradient-boosted trees", "2001", "wide", "Trees built in sequence, each fixing the last one's mistakes. XGBoost (2014) and LightGBM are the well-known tools.")
+      ]),
+      F("Linear, kernel, and lookup models", "wide", "Classic statistics-flavored methods that are fast, small, and easy to explain.", [
+        L("Linear and logistic regression", "", "wide", "Draw the best straight line through the data."),
+        L("k-nearest neighbors", "1951", "spec", "Predicts by looking up the most similar past examples."),
+        L("ARIMA", "1970", "spec", "A classic recipe for forecasting a series from its own past values."),
+        L("Q-learning table", "1989", "spec", "Learns by trial and error which action is best in each situation, stored as a lookup table."),
+        L("Support vector machine", "1995", "spec", "Finds the widest gap separating two groups. The leading method just before deep learning."),
+        L("Gaussian process", "", "spec", "Gives predictions with honest uncertainty. Useful when data is scarce.")
+      ]),
+      F("Clustering and compression", "wide", "Find structure in data without being told the answers.", [
+        L("Principal component analysis", "1901", "wide", "Boils many measurements down to the few directions that vary most."),
+        L("k-means", "1957", "wide", "Sorts data into a chosen number of groups around central points."),
+        L("Gaussian mixture model", "", "spec", "Describes data as a blend of overlapping bell curves."),
+        L("Matrix factorization", "2006", "wide", "Fills in a giant table of who liked what. A long-time engine of recommendation systems.")
+      ]),
+      F("Probabilistic models", "spec", "Reason with explicit probabilities instead of learned connections.", [
+        L("Naive Bayes", "", "hist", "Counts how often words go with outcomes. Powered early spam filters."),
+        L("N-gram language model", "", "hist", "Predicts the next word by counting short word sequences. The pre-neural ancestor of the LLM."),
+        L("Kalman filter", "1960", "wide", "Blends noisy sensor readings into a best estimate. Used in navigation and tracking."),
+        L("Hidden Markov model", "1960s", "hist", "Infers a hidden process from what can be observed. Ran speech recognition for decades."),
+        L("Bayesian network", "1985", "spec", "A map of causes and effects with probabilities attached."),
+        L("Conditional random field", "2001", "hist", "Labels each item in a sequence while considering its neighbors. Used for tagging text before deep learning."),
+        L("Latent Dirichlet allocation", "2003", "spec", "Discovers the topics running through a large pile of documents.")
+      ]),
+      F("Symbolic AI", "spec", "Hand-written rules and logic instead of anything learned from data.", [
+        L("Fuzzy logic", "1965", "spec", "Reasons with degrees of truth instead of plain yes or no. Common in appliance and industrial controllers."),
+        L("Expert system", "1970s", "hist", "Thousands of if-then rules written by specialists."),
+        L("Logic programming", "1972", "spec", "State facts and rules, and let the computer deduce answers. Prolog is the classic language."),
+        L("Search and planning", "", "wide", "Explores possible moves ahead. Beat the world chess champion in 1997 and still guides routing and game AI."),
+        L("Constraint and SAT solvers", "", "wide", "Find an arrangement that satisfies every rule at once. Used for scheduling and checking chip designs."),
+        L("Knowledge graph", "", "wide", "A web of facts and how they connect, used behind search engines."),
+        L("Neuro-symbolic systems", "", "exp", "Pair a neural network with rule-based reasoning.")
+      ]),
+      F("Evolutionary methods", "spec", "Breed solutions over many generations instead of calculating them.", [
+        L("Evolution strategies", "1960s", "spec", "Nudge a set of numbers by random mutation and keep the improvements."),
+        L("Genetic algorithm", "1975", "spec", "Mutates and recombines candidate solutions, keeping the fittest."),
+        L("Genetic programming", "1992", "spec", "Evolves small programs instead of numbers."),
+        L("Particle swarm optimization", "1995", "spec", "A swarm of candidate solutions that drift toward the best ones found so far.")
+      ])
+    ]
+  }
+];
+
+var active = { dom: true, wide: true, spec: true, exp: true, hist: true };
+var out = document.getElementById("out");
+var qEl = document.getElementById("q");
+var CARET = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1.5 7 5 3 8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function chip(s) { return el("span", "chip s-" + s, STATUS[s]); }
+
+function build() {
+  var families = 0, leaves = 0;
+  DATA.forEach(function (trunk) {
+    var sec = el("section", "trunk");
+    sec.appendChild(el("h2", null, trunk.n));
+    sec.appendChild(el("p", null, trunk.d));
+    var ul = el("ul", "tree");
+    trunk.c.forEach(function (fam) {
+      families++;
+      var li = el("li", "fam");
+      var head = el("button", "fam-head");
+      head.type = "button";
+      head.setAttribute("aria-expanded", "true");
+      var caret = el("span", "caret"); caret.innerHTML = CARET;
+      head.appendChild(caret);
+      fam.nameEl = el("span", "fam-name", fam.n);
+      head.appendChild(fam.nameEl);
+      head.appendChild(chip(fam.s));
+      head.appendChild(el("span", "count", fam.c.length + " designs"));
+      li.appendChild(head);
+      li.appendChild(el("p", "desc", fam.d));
+      var kids = el("ul");
+      fam.c.forEach(function (leaf) {
+        leaves++;
+        var k = el("li");
+        var h = el("div", "leaf-head");
+        leaf.nameEl = el("span", "leaf-name", leaf.n);
+        h.appendChild(leaf.nameEl);
+        if (leaf.y) h.appendChild(el("span", "year", leaf.y));
+        h.appendChild(chip(leaf.s));
+        k.appendChild(h);
+        k.appendChild(el("p", "desc", leaf.d));
+        leaf.el = k;
+        kids.appendChild(k);
+      });
+      li.appendChild(kids);
+      fam.el = li; fam.head = head; fam.kids = kids; fam.open = true;
+      head.addEventListener("click", function () { fam.open = !fam.open; apply(); });
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul);
+    trunk.el = sec;
+    out.appendChild(sec);
+  });
+  document.getElementById("tally").textContent = leaves + " designs in " + families + " families";
+
+  var filters = document.getElementById("filters");
+  Object.keys(STATUS).forEach(function (s) {
+    var b = el("button", "chip s-" + s, STATUS[s]);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "true");
+    b.addEventListener("click", function () {
+      active[s] = !active[s];
+      b.setAttribute("aria-pressed", String(active[s]));
+      apply();
+    });
+    filters.appendChild(b);
+  });
+}
+
+function hit(node, q) {
+  if (!q) return true;
+  return (node.n + " " + (node.y || "") + " " + node.d + " " + STATUS[node.s]).toLowerCase().indexOf(q) !== -1;
+}
+function paint(node, q) {
+  var name = node.n, i = q ? name.toLowerCase().indexOf(q) : -1;
+  node.nameEl.textContent = "";
+  if (i === -1) { node.nameEl.textContent = name; return; }
+  node.nameEl.appendChild(document.createTextNode(name.slice(0, i)));
+  node.nameEl.appendChild(el("mark", null, name.slice(i, i + q.length)));
+  node.nameEl.appendChild(document.createTextNode(name.slice(i + q.length)));
+}
+
+function apply() {
+  var q = qEl.value.trim().toLowerCase();
+  var any = false;
+  DATA.forEach(function (trunk) {
+    var trunkShown = false;
+    trunk.c.forEach(function (fam) {
+      var famHit = q && hit(fam, q);
+      var shown = 0;
+      fam.c.forEach(function (leaf) {
+        var ok = active[leaf.s] && (famHit || hit(leaf, q));
+        leaf.el.hidden = !ok;
+        paint(leaf, q);
+        if (ok) shown++;
+      });
+      paint(fam, q);
+      fam.el.hidden = shown === 0;
+      var open = q ? true : fam.open;
+      fam.head.setAttribute("aria-expanded", String(open));
+      fam.kids.hidden = !open;
+      if (shown) trunkShown = true;
+    });
+    trunk.el.hidden = !trunkShown;
+    if (trunkShown) any = true;
+  });
+  document.getElementById("empty").hidden = any;
+}
+
+function setAll(open) {
+  DATA.forEach(function (t) { t.c.forEach(function (f) { f.open = open; }); });
+  apply();
+}
+
+build();
+apply();
+qEl.addEventListener("input", apply);
+document.getElementById("expand").addEventListener("click", function () { setAll(true); });
+document.getElementById("collapse").addEventListener("click", function () { setAll(false); });
+</script>
+</body>
+</html>
